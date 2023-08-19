@@ -5,6 +5,7 @@
 .vscode
 *.crt
 *.key
+*.pem
 npm-debug.log
 project.env
 backup/*
