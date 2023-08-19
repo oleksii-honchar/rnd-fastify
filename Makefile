@@ -7,8 +7,14 @@ NC=\033[0m # No Color
 include project.env
 export $(shell sed 's/=.*//' project.env)
 
-envFileLoc = "$(PWD)/configs/envs/local.env"
-envFileProd = "$(PWD)/configs/envs/production.loc.env"
+envFileLoc = $(PWD)/configs/envs/local.env
+envFileProd = $(PWD)/configs/envs/production.loc.env
+
+ifeq ($(target), local)
+    include $(envFileLoc)
+else ifeq ($(target), prod)
+    include $(envFileProd)
+endif
 
 .PHONY: help
 
@@ -29,18 +35,12 @@ clean-dist:  ## Cleaning ./dist folder
 
 build: clean-dist check-project-env-vars ## Build production version
 	@printf "${BG_GREY}[build] Start${NC}\n"
-	@source $(envFileProd)
-	@npx env-cmd -f $(envFileProd) node --no-warnings --experimental-specifier-resolution=node \
-		--loader ./scripts/ts-esm-loader-with-tsconfig-paths.js ./configs/webpack-wrapper.ts\
-		--config ./configs/webpack.config.ts \
-		--mode production \
-		--env BUILD_ANALYZE=$(BUILD_ANALYZE)
+	@npx env-cmd -f $(envFileProd) tsc -p tsconfig.json --noEmit
 
 	@printf "${BG_GREY}[build] Done${NC}\n"
 
 build-loc: clean-dist check-project-env-vars ## Build local version
 	@printf "${BG_GREY}[build-loc] Start${NC}\n"
-	@source $(envFileLoc)
 	@npx env-cmd -f $(envFileLoc) node --no-warnings --experimental-specifier-resolution=node \
 		--loader ./scripts/ts-esm-loader-with-tsconfig-paths.js ./configs/webpack-wrapper.ts\
 		--config ./configs/webpack.config.ts \
@@ -48,10 +48,17 @@ build-loc: clean-dist check-project-env-vars ## Build local version
 		--env BUILD_ANALYZE=$(BUILD_ANALYZE)
 	@printf "${BG_GREY}[build-loc] DONE${NC}\n"
 
-launch-loc: check-project-env-vars ## Launches local Webpack dev-server
+launch-loc: check-project-env-vars kill-node-zombies ## Launches index.ts. Use target=local option!!
 	@printf "${BG_GREY}[launch-loc] Start${NC}\n"
-	@source ${envFileLoc}
 	@npx env-cmd -f $(envFileLoc) nodemon --inspect --config ./configs/nodemon.json
 
 	@printf "${BG_GREY}[launch-loc] DONE${NC}\n"
 
+
+kill-node-zombies: check-project-env-vars ## For zombie process problem, auto kill previous svc process / this solution is cross platform
+	@printf "${BG_GREY}[kill-node-zombies] Start${NC}\n"
+	@npx env-cmd -f $(envFileLoc) \
+		node -e "process.exit(0) || process.exit(1)" && \
+	 	echo "Killing on port: $(SERVE_PORT)" && \
+	 	npx cross-port-killer $(SERVE_PORT)
+	@printf "${BG_GREY}[kill-node-zombies] DONE${NC}\n"
