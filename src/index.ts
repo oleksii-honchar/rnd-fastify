@@ -1,16 +1,14 @@
-// eslint-disable-next-line import/default
+// eslint-disable-next-line import/default,import/no-named-as-default,import/no-named-as-default-member
 import fastify, { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { createRequire } from "module";
 import colors from "colors";
-import { readFileSync } from "fs";
 import path from "path";
 
 import { blablo } from "blablo";
 
-import { getPingRoute } from "./routes/get-ping.ts";
-import { getIndexRoute } from "./routes/get-index.js";
+import { getPingRoute } from "src/routes/get-ping.ts";
+import { getIndexRoute } from "src/routes/get-index.ts";
 import { getRootRepoDir, setCurrMetaUrl } from "scripts/esm-utils.ts";
-import chalk from "chalk";
 
 setCurrMetaUrl(import.meta.url);
 colors.enable();
@@ -25,15 +23,15 @@ const server: FastifyInstance = fastify({
       target: "pino-pretty",
       options: {
         translateTime: "HH:MM:ss Z",
-        colorize: false,
+        colorize: true,
         singleLine: true,
+        messageFormat: `${"{msg}".yellow}${
+          "{if reqId} [{reqId}]{end}{if req} '{req.method} {req.url}', remote:{req.remoteAddress}:{req.remotePort}, host:{req.hostname} {end}{end}{if res} '{res.statusCode}' | {responseTime}ms{end}"
+            .white
+        }`,
       },
     },
   },
-  // https: {
-  //   key: readFileSync(path.join(getRootRepoDir(), "./src/keys/privkey.pem")),
-  //   cert: readFileSync(path.join(getRootRepoDir(), "./src/keys/fullchain.pem")),
-  // },
 });
 
 server.register(require("@fastify/static"), {

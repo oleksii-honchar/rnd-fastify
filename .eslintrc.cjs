@@ -6,10 +6,9 @@ module.exports = {
     ecmaVersion: "es2022",
     errorOnUnknownASTType: true,
     errorOnTypeScriptSyntacticAndSemanticIssues: true,
-    project: "**/tsconfig.json",
-    "createDefaultProgram": true,
-    tsconfigRootDir: "./",
+    project: "tsconfig.json",
     sourceType: "module",
+    tsconfigRootDir: __dirname,
   },
   extends: [
     "prettier",
@@ -56,7 +55,6 @@ module.exports = {
     "quote-props": ["error", "consistent-as-needed"],
   },
   env: {
-    browser: true,
     node: true,
     es6: true,
   },
@@ -69,9 +67,9 @@ module.exports = {
   },
   plugins: ["@typescript-eslint", "node", "prettier", "import", ],
   settings: {
-    "import/extensions": [".js", ".jsx", ".ts", ".tsx"],
+    "import/extensions": [".js", ".ts", "cjs"],
     "import/parsers": {
-      "@typescript-eslint/parser": [".ts", ".tsx"],
+      "@typescript-eslint/parser": [".ts"],
     },
     "import/resolver": {
       typescript: {
